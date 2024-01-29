@@ -180,7 +180,7 @@ app.post('/signup', async(req, res) => {
     try{
 
         const checkUser = await pool.query('SELECT * FROM users WHERE email = $1', [email])
-        if(checkUser.rows.length) return res.json({detail: 'The user already exists '})
+        if(checkUser.rows.length) return res.json({detail: 'Такой пользователь уже существует'})
         
         const signUp = await pool.query('INSERT INTO users (email, hashed_password) VALUES($1, $2)', [email, hashedPassword])
         const token =  jwt.sign({email}, 'secret', {expiresIn: '1hr'})
@@ -204,7 +204,7 @@ app.post('/login', async(req, res) => {
     try{
 
         const user = await pool.query('SELECT * FROM users WHERE email=$1', [email])
-        if(!user.rows.length) res.json({detail: "There isn't such user"})
+        if(!user.rows.length) res.json({detail: "Такого пользователя не существует"})
         else {
             const oldHashedPassword = await user.rows[0].hashed_password
             
@@ -213,7 +213,7 @@ app.post('/login', async(req, res) => {
             if(match) {
                 res.json({email, token})
             } else {
-                res.json({detail: 'Password is wrong'})
+                res.json({detail: 'Неверный пароль'})
             }
         }
         
