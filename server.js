@@ -87,11 +87,8 @@ app.get('/links/:userEmail', async(req, res) => {
 
     
     const {userEmail} = req.params
-    // console.log(userEmail)
 
     try{
-        // const userEmail = 'artur@test.ru'
-
         const links = await pool.query('SELECT * FROM link WHERE user_email = $1', [userEmail])
         res.json(links.rows)
         // console.log(todos.rows)
@@ -114,14 +111,15 @@ app.post('/links', async(req, res) => {
             let linkObj = linksArr[linkIndex];
 
 
-            if (!linkObj.id) {
-                const {user_email, title, link, color} = linkObj
-                const id = uuidv4()
+            if (linkObj.id.length <= 7) {
+                console.log(linkObj)
+                const {user_email, title, link, color, text_color, id} = linkObj
+                const newId = uuidv4()
 
                 try{
-                    const newLink = await pool.query('INSERT INTO link(id, user_email, title, link, color) VALUES($1, $2, $3, $4, $5)',
-                    [id, user_email, title, link, color])
-                    //console.log(newLink)
+                    const newLink = await pool.query('INSERT INTO link(id, user_email, title, link, color, text_color) VALUES($1, $2, $3, $4, $5, $6)',
+                    [newId, user_email, title, link, color, text_color])
+                    console.log('added new')
 
                 } catch (e) {
                     console.error(e)
@@ -130,12 +128,14 @@ app.post('/links', async(req, res) => {
             } 
 
             else {
-                const {id, user_email, title, link, color} = linkObj
+                console.log(linkObj)
+                const {id, user_email, title, link, color, text_color} = linkObj
 
                 try{
-                    const editLink = await pool.query('UPDATE link SET user_email = $1, title = $2, link = $3, color = $4 WHERE id = $5', [user_email, title, link, color, id])
+                    const editLink = await pool.query('UPDATE link SET user_email = $1, title = $2, link = $3, color = $4, text_color = $5 WHERE id = $6', 
+                    [user_email, title, link, color, text_color, id])
             
-                    //console.log(editLink)
+                    console.log('updated old')
 
 
                 } catch (e) {

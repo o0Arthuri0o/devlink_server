@@ -5,7 +5,8 @@ CREATE TABLE link (
     user_email VARCHAR(255),
     title VARCHAR(50),
     link VARCHAR(150),
-    color VARCHAR(50)
+    color VARCHAR(50),
+    text_color VARCHAR(50)
 );
 
 CREATE TABLE profile (
