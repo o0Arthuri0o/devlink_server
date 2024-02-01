@@ -27,13 +27,13 @@ app.get('/images/:userEmail', async(req, res) => {
 
   try {
     const pathFromDB = await pool.query('SELECT path FROM photos WHERE user_email = $1', [userEmail])
-    const pathString = pathFromDB.rows[0].path
+    const pathString = pathFromDB.rows[0]?.path
     if(pathString) {
-      res.sendFile(pathString)
-      console.log(pathString)
+        res.sendFile(pathString)
+        console.log(pathString)
     } else {
-      res.json('error')
-      console.log(err)
+      res.status(500)
+    //   console.log('error')
     }
   } catch(err) {
     console.error(err)
@@ -47,18 +47,25 @@ app.post('/images/:userEmail', async(req, res) => {
 
     const {userEmail} = req.params
     // console.log(userEmail)
-    const file = req.files.upload
+    const file = req.files?.upload
+    if(!file) return
 
-    const filePath = path.join(__dirname, 'public', 'images', `${file.name}`)
-   // console.log(filePath)
+    // const filePath = path.join(__dirname, 'public', 'images', `${file.name}`)
+    // console.log(filePath)
+    const filePath = path.join(__dirname, 'public','images', `${userEmail}`, `${file.name}`)
 
     try {
-
         const checkPhoto = await pool.query('SELECT * FROM photos WHERE user_email=$1', [userEmail])
 
         if(!checkPhoto.rows.length) {
+
+            fs.mkdir(`public/images/${userEmail}`, err => {
+                if(err) console.log(err)
+            })
+
             const newPhoto = await pool.query('INSERT INTO photos(user_email, path) VALUES($1, $2)',[userEmail, filePath])
         } else {
+
             const oldPhotoPath = checkPhoto.rows[0].path
            // console.log(oldPhotoPath)
             fs.unlink(oldPhotoPath, function(){})
@@ -79,6 +86,8 @@ app.post('/images/:userEmail', async(req, res) => {
     })
     
   })
+
+  
 
 
 
