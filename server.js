@@ -87,6 +87,60 @@ app.post('/images/:userEmail', async(req, res) => {
     
   })
 
+//get profile info
+app.get('/profile/:userEmail', async(req, res) => {
+    const {userEmail} = req.params
+    
+    try{
+
+        const info = await pool.query('SELECT * FROM profile WHERE user_email = $1', [userEmail])
+        if(info.rows.length) {
+            const {name, surname, new_email} = info.rows[0]
+            res.json({name, surname, new_email})
+            return
+        } else  {
+            res.json('no user')
+        }
+
+    } catch(err) {
+        console.log(err)
+    }
+
+
+
+})
+
+
+//post profile info
+app.post('/profile/:userEmail', async(req, res) => {
+
+    const {userEmail} = req.params
+    const {name, surname, profileEmail} = req.body
+
+
+    try {
+        const oldInfo = await pool.query('SELECT * FROM profile WHERE user_email = $1', [userEmail])
+        if(oldInfo.rows.length) {
+            const updateInfo = await pool.query('UPDATE profile SET name = $1, surname = $2, new_email = $3 WHERE user_email = $4', 
+            [name, surname, profileEmail, userEmail])
+            res.json('update')
+            return
+        } else {
+            const newId = uuidv4()
+            const newInfo = await pool.query('INSERT INTO profile(id, user_email, name, surname, new_email) VALUES($1, $2, $3, $4, $5)', 
+            [newId, userEmail, name, surname, profileEmail])
+            res.json('create')
+            return
+        }
+    }
+    catch(e) {
+            res.json('error')
+            console.error(e)
+        }
+
+
+})
+
   
 
 
