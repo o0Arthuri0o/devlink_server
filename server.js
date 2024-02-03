@@ -10,6 +10,8 @@ const ejsLayouts = require('express-ejs-layouts')
 const fileUpload = require('express-fileupload')
 const path = require('path')
 const fs = require('fs')
+const { Readable } = require('stream');
+
 
 app.use(cors())
 app.use(express.json())
@@ -19,6 +21,61 @@ app.set('view engine', 'ejs')
 app.use(ejsLayouts)
 app.use(express.static('public'))
 app.use(express.urlencoded({ extended: true }))
+
+
+app.get('/ready/:token', async(req, res) => {
+    let  {token} = req.params
+    token = token.split('.').join('-')
+    try {
+        const user = await pool.query('SELECT * FROM users WHERE user_token = $1', [token])
+        if(!user.rows.length) return
+        const realEmail = user.rows[0].email
+        if(user.rows.length) {
+            const links = await pool.query('SELECT * FROM link WHERE user_email = $1', [realEmail])
+            const profileInfo = await pool.query('SELECT * FROM profile WHERE user_email = $1', [realEmail])
+            const allInfo = {
+                links: links.rows,
+                profileInfo: profileInfo.rows[0]
+            }
+            res.json(allInfo)
+            
+        }
+
+    } catch(err) {
+        console.log(err)
+    }
+
+})
+
+//get raady page img
+app.get('/readyimg/:token', async(req, res) => {
+    let  {token} = req.params
+    token = token.split('.').join('-')
+    try {
+        const user = await pool.query('SELECT * FROM users WHERE user_token = $1', [token])
+        if(!user.rows.length) return
+        const realEmail = user.rows[0].email
+        if(user.rows.length) {
+            const pathFromDB = await pool.query('SELECT path FROM photos WHERE user_email = $1', [realEmail])
+            const pathString = pathFromDB.rows[0]?.path
+            
+            if(pathString){
+                res.sendFile(pathString)
+            }
+            else {
+                res.json('0')
+            }
+            
+        }
+
+    } catch(err) {
+        console.log(err)
+    }
+})
+
+
+
+
 
 // Создаем хранилище для загруженных файлов
 app.get('/images/:userEmail', async(req, res) => {
@@ -240,14 +297,13 @@ app.post('/signup', async(req, res) => {
     console.log(email, password)
     const salt = bcrypt.genSaltSync(10)
     const hashedPassword = bcrypt.hashSync(password, salt)
+    const token = uuidv4()
     try{
 
         const checkUser = await pool.query('SELECT * FROM users WHERE email = $1', [email])
         if(checkUser.rows.length) return res.json({detail: 'Такой пользователь уже существует'})
         
-        const signUp = await pool.query('INSERT INTO users (email, hashed_password) VALUES($1, $2)', [email, hashedPassword])
-        const token =  jwt.sign({email}, 'secret', {expiresIn: '1hr'})
-        console.log(token)
+        const signUp = await pool.query('INSERT INTO users (email, hashed_password, user_token) VALUES($1, $2, $3)', [email, hashedPassword, token])
         res.json({email, token})
 
     } catch(e) {
@@ -261,7 +317,7 @@ app.post('/signup', async(req, res) => {
 //login
 app.post('/login', async(req, res) => {
     const {email, password} = req.body
-    const token =  jwt.sign({email}, 'secret', {expiresIn: '1hr'})
+    
 
 
     try{
@@ -272,8 +328,10 @@ app.post('/login', async(req, res) => {
             const oldHashedPassword = await user.rows[0].hashed_password
             
             const match = await bcrypt.compare(password, oldHashedPassword)
-
+            
             if(match) {
+                const token = user.rows[0].user_token
+                console.log(token)
                 res.json({email, token})
             } else {
                 res.json({detail: 'Неверный пароль'})
