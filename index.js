@@ -1,4 +1,4 @@
-const PORT = process.env.PORT ?? 8000
+const PORT = process.env.PORT ?? 5000
 const express = require('express')
 const {v4: uuidv4} = require('uuid')
 const app = express()
@@ -83,7 +83,7 @@ app.get('/readyimg/:token', async(req, res) => {
 // Создаем хранилище для загруженных файлов
 app.get('/images/:userEmail', async(req, res) => {
   const {userEmail} = req.params
-  console.log(userEmail)
+//   console.log(userEmail)
 
   try {
     const pathFromDB = await pool.query('SELECT path FROM photos WHERE user_email = $1', [userEmail])
@@ -235,14 +235,14 @@ app.post('/links', async(req, res) => {
 
 
             if (linkObj.id.length <= 7) {
-                console.log(linkObj)
+                // console.log(linkObj)
                 const {user_email, title, link, color, text_color, id} = linkObj
                 const newId = uuidv4()
 
                 try{
                     const newLink = await pool.query('INSERT INTO link(id, user_email, title, link, color, text_color) VALUES($1, $2, $3, $4, $5, $6)',
                     [newId, user_email, title, link, color, text_color])
-                    console.log('added new')
+                    // console.log('added new')
 
                 } catch (e) {
                     console.error(e)
@@ -251,14 +251,14 @@ app.post('/links', async(req, res) => {
             } 
 
             else {
-                console.log(linkObj)
+                // console.log(linkObj)
                 const {id, user_email, title, link, color, text_color} = linkObj
 
                 try{
                     const editLink = await pool.query('UPDATE link SET user_email = $1, title = $2, link = $3, color = $4, text_color = $5 WHERE id = $6', 
                     [user_email, title, link, color, text_color, id])
             
-                    console.log('updated old')
+                    // console.log('updated old')
 
 
                 } catch (e) {
@@ -297,7 +297,7 @@ app.delete('/links/:id', async(req, res) => {
 //sign up
 app.post('/signup', async(req, res) => {
     const {email, password} = req.body
-    console.log(email, password)
+    // console.log(email, password)
     const salt = bcrypt.genSaltSync(10)
     const hashedPassword = bcrypt.hashSync(password, salt)
     const token = uuidv4()
@@ -334,7 +334,7 @@ app.post('/login', async(req, res) => {
             
             if(match) {
                 const token = user.rows[0].user_token
-                console.log(token)
+                // console.log(token)
                 res.json({email, token})
             } else {
                 res.json({detail: 'Неверный пароль'})
