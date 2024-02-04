@@ -22,9 +22,9 @@ app.use(ejsLayouts)
 app.use(express.static('public'))
 app.use(express.urlencoded({ extended: true }))
 
-app.use(function (_, response) {
-    response.send("<h2>Hello</h2>");
-});
+// app.use(function (_, response) {
+//     response.send("<h2>Hello</h2>");
+// });
 
 app.get('/ready/:token', async(req, res) => {
     let  {token} = req.params
