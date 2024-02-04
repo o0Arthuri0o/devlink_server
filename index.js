@@ -115,7 +115,7 @@ app.post('/images/:userEmail', async(req, res) => {
 
         if(!checkPhoto.rows.length) {
 
-            fs.mkdir(`public/images/${userEmail}`, err => {
+            fs.mkdir(`${__dirname}/public/images/${userEmail}`, err => {
                 if(err) console.log(err)
             })
 
