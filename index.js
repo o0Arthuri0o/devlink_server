@@ -47,101 +47,101 @@ app.get('/ready/:token', async(req, res) => {
 })
 
 //get raady page img
-app.get('/readyimg/:token', async(req, res) => {
-    let  {token} = req.params
-    token = token.split('.').join('-')
-    try {
-        const user = await pool.query('SELECT * FROM users WHERE user_token = $1', [token])
-        if(!user.rows.length) return
-        const realEmail = user.rows[0].email
-        if(user.rows.length) {
-            const pathFromDB = await pool.query('SELECT path FROM photos WHERE user_email = $1', [realEmail])
-            const pathString = pathFromDB.rows[0]?.path
+// app.get('/readyimg/:token', async(req, res) => {
+//     let  {token} = req.params
+//     token = token.split('.').join('-')
+//     try {
+//         const user = await pool.query('SELECT * FROM users WHERE user_token = $1', [token])
+//         if(!user.rows.length) return
+//         const realEmail = user.rows[0].email
+//         if(user.rows.length) {
+//             const pathFromDB = await pool.query('SELECT path FROM photos WHERE user_email = $1', [realEmail])
+//             const pathString = pathFromDB.rows[0]?.path
             
-            if(pathString){
-                res.sendFile(pathString)
-            }
-            else {
-                res.json('0')
-            }
+//             if(pathString){
+//                 res.sendFile(pathString)
+//             }
+//             else {
+//                 res.json('0')
+//             }
             
-        }
+//         }
 
-    } catch(err) {
-        console.log(err)
-    }
-})
+//     } catch(err) {
+//         console.log(err)
+//     }
+// })
 
 
 
 
 
 // Создаем хранилище для загруженных файлов
-app.get('/images/:userEmail', async(req, res) => {
-  const {userEmail} = req.params
-//   console.log(userEmail)
+// app.get('/images/:userEmail', async(req, res) => {
+//   const {userEmail} = req.params
+// //   console.log(userEmail)
 
-  try {
-    const pathFromDB = await pool.query('SELECT path FROM photos WHERE user_email = $1', [userEmail])
-    const pathString = pathFromDB.rows[0]?.path
-    if(pathString) {
-        res.sendFile(pathString)
-        console.log(pathString)
-    } else {
-      res.status(500)
-    //   console.log('error')
-    }
-  } catch(err) {
-    console.error(err)
-}
+//   try {
+//     const pathFromDB = await pool.query('SELECT path FROM photos WHERE user_email = $1', [userEmail])
+//     const pathString = pathFromDB.rows[0]?.path
+//     if(pathString) {
+//         res.sendFile(pathString)
+//         console.log(pathString)
+//     } else {
+//       res.status(500)
+//     //   console.log('error')
+//     }
+//   } catch(err) {
+//     console.error(err)
+// }
 
   
 
-})
+// })
 
-app.post('/images/:userEmail', async(req, res) => {
+// app.post('/images/:userEmail', async(req, res) => {
 
-    const {userEmail} = req.params
-    // console.log(userEmail)
-    const file = req.files?.upload
-    if(!file) return
+//     const {userEmail} = req.params
+//     // console.log(userEmail)
+//     const file = req.files?.upload
+//     if(!file) return
 
-    // const filePath = path.join(__dirname, 'public', 'images', `${file.name}`)
-    // console.log(filePath)
-    const filePath = path.join(__dirname, 'public','images', `${userEmail}`, `${file.name}`)
+//     // const filePath = path.join(__dirname, 'public', 'images', `${file.name}`)
+//     // console.log(filePath)
+//     const filePath = path.join(__dirname, 'public','images', `${userEmail}`, `${file.name}`)
 
-    try {
-        const checkPhoto = await pool.query('SELECT * FROM photos WHERE user_email=$1', [userEmail])
+//     try {
+//         const checkPhoto = await pool.query('SELECT * FROM photos WHERE user_email=$1', [userEmail])
 
-        if(!checkPhoto.rows.length) {
+//         if(!checkPhoto.rows.length) {
 
-            fs.mkdir(`/public/images/${userEmail}`, err => {
-                if(err) console.log(err)
-            })
+//             fs.mkdir(`/public/images/${userEmail}`, err => {
+//                 if(err) console.log(err)
+//             })
 
-            const newPhoto = await pool.query('INSERT INTO photos(user_email, path) VALUES($1, $2)',[userEmail, filePath])
-        } else {
+//             const newPhoto = await pool.query('INSERT INTO photos(user_email, path) VALUES($1, $2)',[userEmail, filePath])
+//         } else {
 
-            const oldPhotoPath = checkPhoto.rows[0].path
-           // console.log(oldPhotoPath)
-            fs.unlink(oldPhotoPath, function(){})
-            const newPhoto = await pool.query('UPDATE photos SET path = $1 WHERE user_email = $2', [filePath, userEmail])
-        }
+//             const oldPhotoPath = checkPhoto.rows[0].path
+//            // console.log(oldPhotoPath)
+//             fs.unlink(oldPhotoPath, function(){})
+//             const newPhoto = await pool.query('UPDATE photos SET path = $1 WHERE user_email = $2', [filePath, userEmail])
+//         }
 
-    } catch (err) {
-        console.error(err)
-    }
+//     } catch (err) {
+//         console.error(err)
+//     }
 
-    file.mv(filePath, err => {
-        if (err) {
-          console.log('error')
-          return res.status(500).send(err)
-        }
-        res.sendFile(filePath)
-        console.log(filePath)
-    })
+//     file.mv(filePath, err => {
+//         if (err) {
+//           console.log('error')
+//           return res.status(500).send(err)
+//         }
+//         res.sendFile(filePath)
+//         console.log(filePath)
+//     })
     
-  })
+//   })
 
 //get profile info
 app.get('/profile/:userEmail', async(req, res) => {
